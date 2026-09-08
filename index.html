@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=3.1" />
 </head>
 <body>
   <!-- Contenedor de estrellas y efectos celestiales en Canvas -->
@@ -141,22 +141,22 @@
     </section>
   </main>
 
-  <!-- Elementos para la animación del golpe de la mano al cursor -->
-  <div id="virtual-cursor" class="virtual-cursor" aria-hidden="true">
+  <!-- Elementos para la animación del golpe de la mano al cursor (ocultos por defecto para evitar parpadeos o desbordes) -->
+  <div id="virtual-cursor" class="virtual-cursor" style="display: none;" aria-hidden="true">
     <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
       <path d="M4 2 L4 20 L8.5 16.5 L12.5 22.5 L15 21 L11.2 15.2 L17.5 15.2 Z" fill="#ffffff" stroke="#000000" stroke-width="1.6" stroke-linejoin="round"/>
     </svg>
   </div>
-  <div id="slap-hand" class="slap-hand" aria-hidden="true">
+  <div id="slap-hand" class="slap-hand" style="display: none;" aria-hidden="true">
     <img src="photos/mano.png" alt="Mano" />
   </div>
   <!-- Signo de exclamación cómico que aparece sobre el cursor tras la bofetada -->
-  <div id="slap-sign" class="slap-sign" aria-hidden="true">
+  <div id="slap-sign" class="slap-sign" style="display: none;" aria-hidden="true">
     <div class="sign-bubble">
       <span class="sign-text">!</span>
     </div>
   </div>
 
-  <script src="script.js" defer></script>
+  <script src="script.js?v=3.1" defer></script>
 </body>
 </html>

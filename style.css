@@ -543,12 +543,15 @@ body.cursor-frozen * {
   height: 24px;
   pointer-events: none;
   z-index: 99999;
+  display: none;
+  visibility: hidden;
   opacity: 0;
-  transform: translate(-999px, -999px);
   will-change: transform, opacity;
 }
 
 .virtual-cursor.visible {
+  display: block;
+  visibility: visible;
   opacity: 1;
 }
 
@@ -581,12 +584,13 @@ body.cursor-frozen * {
   position: fixed;
   top: 0;
   left: 0;
-  width: 120px;
-  height: 120px;
+  width: 115px;
+  height: 115px;
   pointer-events: none;
   z-index: 100000;
+  display: none;
+  visibility: hidden;
   opacity: 0;
-  transform: translate(-999px, -999px);
   will-change: transform, opacity;
 }
 
@@ -594,9 +598,12 @@ body.cursor-frozen * {
   width: 100%;
   height: 100%;
   display: block;
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.6));
 }
 
 .slap-hand.striking {
+  display: block;
+  visibility: visible;
   animation: handStrikeAnim 1s cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
 }
 
@@ -636,10 +643,10 @@ body.cursor-frozen * {
   height: 46px;
   pointer-events: none;
   z-index: 100001;
+  display: none;
+  visibility: hidden;
   opacity: 0;
-  transform: translate(-999px, -999px);
   will-change: transform, opacity;
-  display: flex;
   justify-content: center;
   align-items: center;
 }
@@ -667,6 +674,8 @@ body.cursor-frozen * {
 }
 
 .slap-sign.pop {
+  display: flex;
+  visibility: visible;
   animation: signPopAnim 0.75s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
@@ -690,5 +699,56 @@ body.cursor-frozen * {
   100% {
     opacity: 0;
     transform: translate(var(--sx), calc(var(--sy) - 45px)) scale(0.6) rotate(10deg);
+  }
+}
+
+/* ==========================================================================
+   AJUSTES RESPONSIVOS PARA MÓVILES (PANTALLAS PEQUEÑAS Y TÁCTILES)
+   ========================================================================== */
+@media (max-width: 600px) {
+  .slap-hand {
+    width: 85px;
+    height: 85px;
+  }
+  .slap-sign {
+    width: 38px;
+    height: 38px;
+  }
+  .sign-bubble {
+    width: 36px;
+    height: 36px;
+    border-width: 2px;
+  }
+  .sign-text {
+    font-size: 22px;
+  }
+  /* En pantallas móviles táctiles, no mostrar cursor de ratón virtual */
+  .virtual-cursor {
+    display: none !important;
+  }
+  .buttons-playground {
+    gap: 1.2rem;
+    min-height: 120px;
+    padding: 0.5rem;
+  }
+  .btn {
+    font-size: 1.05rem;
+    padding: 0.85rem 1.8rem;
+    gap: 0.4rem;
+  }
+  .letter-section {
+    padding: 4rem 1.1rem 6rem;
+  }
+  .letter-card {
+    padding: 1.8rem 1.25rem;
+    border-radius: 20px;
+    margin-bottom: 2.2rem;
+  }
+  .hero-phrase {
+    font-size: clamp(1.85rem, 6.5vw, 2.6rem);
+  }
+  .question-title {
+    font-size: 1.85rem;
+    margin-bottom: 1.8rem;
   }
 }

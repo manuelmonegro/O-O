@@ -220,11 +220,15 @@
   }
   requestAnimationFrame(animateSky);
 
-  // Redimensionado del canvas y reajuste de posiciones
+  // Redimensionado del canvas y reajuste de posiciones (evita reinicios en móvil por barra de navegación)
+  let lastWinWidth = window.innerWidth;
   window.addEventListener('resize', () => {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-    stars.forEach((s) => s.reset());
+    if (Math.abs(window.innerWidth - lastWinWidth) > 30) {
+      lastWinWidth = window.innerWidth;
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      stars.forEach((s) => s.reset());
+    }
     if (isScared && btnNo && btnYes) {
       const hidePos = getHideOffsetBehindYes(slapCount);
       btnNo.style.setProperty('--scared-x', `${hidePos.x.toFixed(2)}px`);
@@ -303,10 +307,10 @@
     const centerDiffX = (btnYes.offsetWidth - btnNo.offsetWidth) / 2;
     const centerDiffY = (btnYes.offsetHeight - btnNo.offsetHeight) / 2;
 
-    // En el 1er golpe se esconde asomándose tímidamente por la derecha (+26px)
-    // En el 2do golpe se esconde asomándose por la izquierda (-26px)
-    const peekX = step === 1 ? 26 : -26;
-    const peekY = 4;
+    const isMobile = window.innerWidth < 600;
+    // En móvil el asomo es más contenido para no desbordar la pantalla
+    const peekX = step === 1 ? (isMobile ? 18 : 26) : (isMobile ? -18 : -26);
+    const peekY = isMobile ? 2 : 4;
 
     return {
       x: deltaX + centerDiffX + peekX,
@@ -319,25 +323,51 @@
     slapCount++;
     isFrozen = true;
 
-    // Posicionar cursor virtual exactamente donde estaba el mouse
+    // Si las coordenadas son inválidas o 0 (como en tap táctil sin clientX), apuntar al centro del botón NO
+    if (!cursorX || !cursorY || (cursorX === 0 && cursorY === 0)) {
+      if (btnNo) {
+        const r = btnNo.getBoundingClientRect();
+        cursorX = r.left + r.width / 2;
+        cursorY = r.top + r.height / 2;
+      } else {
+        cursorX = window.innerWidth / 2;
+        cursorY = window.innerHeight / 2;
+      }
+    }
+
+    const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth < 600);
+
+    // Posicionar cursor virtual ÚNICAMENTE en ordenadores de sobremesa con ratón
     if (virtualCursor) {
-      virtualCursor.style.setProperty('--cx', `${cursorX}px`);
-      virtualCursor.style.setProperty('--cy', `${cursorY}px`);
-      virtualCursor.className = 'virtual-cursor visible slapped';
+      if (!isTouch) {
+        virtualCursor.style.setProperty('--cx', `${cursorX}px`);
+        virtualCursor.style.setProperty('--cy', `${cursorY}px`);
+        virtualCursor.style.display = 'block';
+        virtualCursor.className = 'virtual-cursor visible slapped';
+      } else {
+        virtualCursor.style.display = 'none';
+      }
     }
 
     // Posicionar mano y disparar animación de bofetada
+    const handOffsetX = isTouch ? 35 : 45;
+    const handOffsetY = isTouch ? 60 : 85;
+
     if (slapHand) {
-      slapHand.style.setProperty('--hx', `${cursorX - 45}px`);
-      slapHand.style.setProperty('--hy', `${cursorY - 85}px`);
+      slapHand.style.setProperty('--hx', `${cursorX - handOffsetX}px`);
+      slapHand.style.setProperty('--hy', `${cursorY - handOffsetY}px`);
+      slapHand.style.display = 'block';
       slapHand.className = 'slap-hand striking';
     }
 
     // Momento del impacto (~220ms): Aparece el signo cómico '!' y el botón huye detrás de Sí
     setTimeout(() => {
       if (slapSign) {
-        slapSign.style.setProperty('--sx', `${cursorX - 22}px`);
-        slapSign.style.setProperty('--sy', `${cursorY - 20}px`);
+        const signOffsetX = isTouch ? 18 : 22;
+        const signOffsetY = isTouch ? 16 : 20;
+        slapSign.style.setProperty('--sx', `${cursorX - signOffsetX}px`);
+        slapSign.style.setProperty('--sy', `${cursorY - signOffsetY}px`);
+        slapSign.style.display = 'flex';
         slapSign.className = 'slap-sign pop';
       }
 
@@ -368,20 +398,20 @@
     // Ocultar cursor nativo para simular el congelamiento
     document.body.classList.add('cursor-frozen');
 
-    // Mantener quieto por exactamente 1 segundo (1000ms)
+    // Mantener quieto por exactamente 1 segundo (1000ms) y luego ocultar estrictamente
     setTimeout(() => {
       document.body.classList.remove('cursor-frozen');
       if (virtualCursor) {
         virtualCursor.className = 'virtual-cursor';
-        virtualCursor.style.transform = 'translate(-999px, -999px)';
+        virtualCursor.style.display = 'none';
       }
       if (slapHand) {
         slapHand.className = 'slap-hand';
-        slapHand.style.transform = 'translate(-999px, -999px)';
+        slapHand.style.display = 'none';
       }
       if (slapSign) {
         slapSign.className = 'slap-sign';
-        slapSign.style.transform = 'translate(-999px, -999px)';
+        slapSign.style.display = 'none';
       }
       isFrozen = false;
     }, 1000);
@@ -413,6 +443,8 @@
 
   function handleMouseMove(e) {
     if (isFrozen) return; // Si el cursor está congelado por la mano, no se mueve
+    // En móviles/pantallas táctiles no activar evasión por scroll del dedo
+    if (!window.matchMedia('(hover: hover)').matches) return;
 
     updateMouseVelocity(e);
     if (!btnNo) return;
@@ -445,8 +477,8 @@
       targetX += nx * pushForce;
       targetY += ny * pushForce;
 
-      const maxLimitX = Math.min(window.innerWidth * 0.38, 300);
-      const maxLimitY = Math.min(window.innerHeight * 0.26, 190);
+      const maxLimitX = Math.min((window.innerWidth - 140) / 2, 280);
+      const maxLimitY = Math.min(window.innerHeight * 0.22, 170);
 
       // Esquiva lateral si intentan acorralarlo contra las paredes
       if (Math.abs(targetX) > maxLimitX * 0.78) {
@@ -468,8 +500,25 @@
   // Acción al presionar NO: si aún quedan golpes disponibles, golpea; si ya pasaron los 2 golpes, redirige a no.html
   async function handleNoChoice(e) {
     if (slapCount < MAX_SLAPS) {
-      const clickX = e && e.clientX ? e.clientX : window.innerWidth / 2;
-      const clickY = e && e.clientY ? e.clientY : window.innerHeight / 2;
+      let clickX = null;
+      let clickY = null;
+      if (e) {
+        if (e.clientX !== undefined && e.clientY !== undefined) {
+          clickX = e.clientX;
+          clickY = e.clientY;
+        } else if (e.touches && e.touches[0]) {
+          clickX = e.touches[0].clientX;
+          clickY = e.touches[0].clientY;
+        } else if (e.changedTouches && e.changedTouches[0]) {
+          clickX = e.changedTouches[0].clientX;
+          clickY = e.changedTouches[0].clientY;
+        }
+      }
+      if (!clickX && btnNo) {
+        const r = btnNo.getBoundingClientRect();
+        clickX = r.left + r.width / 2;
+        clickY = r.top + r.height / 2;
+      }
       triggerSlapAndFreeze(clickX, clickY);
       return;
     }
