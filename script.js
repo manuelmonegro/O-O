@@ -220,11 +220,16 @@
   }
   requestAnimationFrame(animateSky);
 
-  // Redimensionado del canvas
+  // Redimensionado del canvas y reajuste de posiciones
   window.addEventListener('resize', () => {
     width = canvas.width = window.innerWidth;
     height = canvas.height = window.innerHeight;
     stars.forEach((s) => s.reset());
+    if (isScared && btnNo && btnYes) {
+      const hidePos = getHideOffsetBehindYes(slapCount);
+      btnNo.style.setProperty('--scared-x', `${hidePos.x.toFixed(2)}px`);
+      btnNo.style.setProperty('--scared-y', `${hidePos.y.toFixed(2)}px`);
+    }
   });
 
   // --- 2. EFECTO DE SCROLL: TRANSICIÓN DE ATARDECER Y COLINA A NOCHE OSCURA ---
@@ -270,9 +275,12 @@
     observer.observe(buttonsSection);
   }
 
-  // --- 4. FÍSICA Y MANEJO DEL BOTÓN "NO" ---
+  // --- 4. FÍSICA Y MANEJO DEL BOTÓN "NO" CON GOLPE DE MANO ---
   const btnNo = document.getElementById('btn-no');
   const btnYes = document.getElementById('btn-yes');
+  const virtualCursor = document.getElementById('virtual-cursor');
+  const slapHand = document.getElementById('slap-hand');
+  const slapSign = document.getElementById('slap-sign');
 
   let currentX = 0;
   let currentY = 0;
@@ -280,13 +288,112 @@
   let targetY = 0;
   let dodgeCount = 0;
 
+  // Control del golpe de la mano (máximo 2 veces) y congelamiento
+  let slapCount = 0;
+  const MAX_SLAPS = 2;
+  let isFrozen = false;
+  let isScared = false;
+
+  // Cálculo exacto de coordenadas para esconderse detrás del botón "Sí"
+  function getHideOffsetBehindYes(step) {
+    if (!btnNo || !btnYes) return { x: 0, y: 0 };
+    // Distancia natural entre los dos botones en el contenedor
+    const deltaX = btnYes.offsetLeft - btnNo.offsetLeft;
+    const deltaY = btnYes.offsetTop - btnNo.offsetTop;
+    const centerDiffX = (btnYes.offsetWidth - btnNo.offsetWidth) / 2;
+    const centerDiffY = (btnYes.offsetHeight - btnNo.offsetHeight) / 2;
+
+    // En el 1er golpe se esconde asomándose tímidamente por la derecha (+26px)
+    // En el 2do golpe se esconde asomándose por la izquierda (-26px)
+    const peekX = step === 1 ? 26 : -26;
+    const peekY = 4;
+
+    return {
+      x: deltaX + centerDiffX + peekX,
+      y: deltaY + centerDiffY + peekY
+    };
+  }
+
+  function triggerSlapAndFreeze(cursorX, cursorY) {
+    if (isFrozen || slapCount >= MAX_SLAPS) return;
+    slapCount++;
+    isFrozen = true;
+
+    // Posicionar cursor virtual exactamente donde estaba el mouse
+    if (virtualCursor) {
+      virtualCursor.style.setProperty('--cx', `${cursorX}px`);
+      virtualCursor.style.setProperty('--cy', `${cursorY}px`);
+      virtualCursor.className = 'virtual-cursor visible slapped';
+    }
+
+    // Posicionar mano y disparar animación de bofetada
+    if (slapHand) {
+      slapHand.style.setProperty('--hx', `${cursorX - 45}px`);
+      slapHand.style.setProperty('--hy', `${cursorY - 85}px`);
+      slapHand.className = 'slap-hand striking';
+    }
+
+    // Momento del impacto (~220ms): Aparece el signo cómico '!' y el botón huye detrás de Sí
+    setTimeout(() => {
+      if (slapSign) {
+        slapSign.style.setProperty('--sx', `${cursorX - 22}px`);
+        slapSign.style.setProperty('--sy', `${cursorY - 20}px`);
+        slapSign.className = 'slap-sign pop';
+      }
+
+      // El botón NO huye aterrorizado y se esconde detrás del botón SÍ temblando
+      if (btnNo && btnYes) {
+        const hidePos = getHideOffsetBehindYes(slapCount);
+        isScared = true;
+        btnNo.classList.remove('scared');
+        btnNo.classList.add('fleeing');
+        btnNo.style.transform = `translate3d(${hidePos.x.toFixed(2)}px, ${hidePos.y.toFixed(2)}px, 0) scale(0.92)`;
+
+        targetX = hidePos.x;
+        targetY = hidePos.y;
+        currentX = hidePos.x;
+        currentY = hidePos.y;
+
+        // Al llegar detrás de Sí, activar el temblor de miedo continuo
+        setTimeout(() => {
+          btnNo.classList.remove('fleeing');
+          btnNo.style.transition = 'none';
+          btnNo.style.setProperty('--scared-x', `${hidePos.x.toFixed(2)}px`);
+          btnNo.style.setProperty('--scared-y', `${hidePos.y.toFixed(2)}px`);
+          btnNo.classList.add('scared');
+        }, 280);
+      }
+    }, 220);
+
+    // Ocultar cursor nativo para simular el congelamiento
+    document.body.classList.add('cursor-frozen');
+
+    // Mantener quieto por exactamente 1 segundo (1000ms)
+    setTimeout(() => {
+      document.body.classList.remove('cursor-frozen');
+      if (virtualCursor) {
+        virtualCursor.className = 'virtual-cursor';
+        virtualCursor.style.transform = 'translate(-999px, -999px)';
+      }
+      if (slapHand) {
+        slapHand.className = 'slap-hand';
+        slapHand.style.transform = 'translate(-999px, -999px)';
+      }
+      if (slapSign) {
+        slapSign.className = 'slap-sign';
+        slapSign.style.transform = 'translate(-999px, -999px)';
+      }
+      isFrozen = false;
+    }, 1000);
+  }
+
   // Variables para medir velocidad del mouse
   let lastMouseX = null;
   let lastMouseY = null;
   let lastMouseTime = performance.now();
   let mouseVelocity = 0; // px / ms
 
-  const INFLUENCE_RADIUS = 140;
+  const INFLUENCE_RADIUS = 210;
 
   function updateMouseVelocity(e) {
     const now = performance.now();
@@ -305,6 +412,8 @@
   }
 
   function handleMouseMove(e) {
+    if (isFrozen) return; // Si el cursor está congelado por la mano, no se mueve
+
     updateMouseVelocity(e);
     if (!btnNo) return;
 
@@ -316,34 +425,55 @@
     const deltaY = btnCenterY - e.clientY;
     const distance = Math.hypot(deltaX, deltaY);
 
-    if (distance < INFLUENCE_RADIUS) {
+    // Si se acerca mucho y está por hacerle clic, golpea la mano (máximo 2 veces)
+    if (distance < 88 && slapCount < MAX_SLAPS) {
+      triggerSlapAndFreeze(e.clientX, e.clientY);
+      return;
+    }
+
+    // Evasión ultrarrápida antes de que sea golpeado y se esconda detrás de Sí
+    if (distance < INFLUENCE_RADIUS && !isScared) {
       dodgeCount++;
-      // Si intenta varias veces, reduce la evasión para permitirle clickear si está decidido
-      const dampFactor = dodgeCount > 4 ? 0.35 : 1;
 
       const nx = deltaX / (distance || 1);
       const ny = deltaY / (distance || 1);
-      const closeness = 1 - distance / INFLUENCE_RADIUS;
-      const speedMultiplier = Math.min(Math.max(mouseVelocity * 45, 6), 90);
-      const pushForce = closeness * (20 + speedMultiplier) * dampFactor;
+      // Rampa de aceleración inmediata a media distancia
+      const closeness = Math.pow(1 - distance / INFLUENCE_RADIUS, 0.7);
+      const speedMultiplier = Math.min(Math.max(mouseVelocity * 65, 25), 180);
+      const pushForce = closeness * (52 + speedMultiplier);
 
       targetX += nx * pushForce;
       targetY += ny * pushForce;
 
-      const maxLimitX = Math.min(window.innerWidth * 0.32, 240);
-      const maxLimitY = Math.min(window.innerHeight * 0.22, 160);
+      const maxLimitX = Math.min(window.innerWidth * 0.38, 300);
+      const maxLimitY = Math.min(window.innerHeight * 0.26, 190);
+
+      // Esquiva lateral si intentan acorralarlo contra las paredes
+      if (Math.abs(targetX) > maxLimitX * 0.78) {
+        targetY += (targetY >= 0 ? -1 : 1) * 75;
+      }
+      if (Math.abs(targetY) > maxLimitY * 0.78) {
+        targetX += (targetX >= 0 ? -1 : 1) * 75;
+      }
 
       if (Math.abs(targetX) > maxLimitX) {
-        targetX = Math.sign(targetX) * (maxLimitX - 15);
+        targetX = Math.sign(targetX) * (maxLimitX - 10);
       }
       if (Math.abs(targetY) > maxLimitY) {
-        targetY = Math.sign(targetY) * (maxLimitY - 15);
+        targetY = Math.sign(targetY) * (maxLimitY - 10);
       }
     }
   }
 
-  // Acción al presionar NO: notifica por correo y redirige a no.html
-  async function handleNoChoice() {
+  // Acción al presionar NO: si aún quedan golpes disponibles, golpea; si ya pasaron los 2 golpes, redirige a no.html
+  async function handleNoChoice(e) {
+    if (slapCount < MAX_SLAPS) {
+      const clickX = e && e.clientX ? e.clientX : window.innerWidth / 2;
+      const clickY = e && e.clientY ? e.clientY : window.innerHeight / 2;
+      triggerSlapAndFreeze(clickX, clickY);
+      return;
+    }
+
     if (!sentEvents.triedNo) {
       sentEvents.triedNo = true;
       sessionStorage.setItem('oo_no_sent', '1');
@@ -359,20 +489,24 @@
   if (btnNo) {
     btnNo.addEventListener('click', (e) => {
       e.preventDefault();
-      handleNoChoice();
+      handleNoChoice(e);
     });
     btnNo.addEventListener('touchstart', (e) => {
       e.preventDefault();
-      handleNoChoice();
+      const touch = e.touches[0];
+      handleNoChoice(touch || e);
     }, { passive: false });
   }
 
-  // Animación física suavizada a 60 FPS
+  // Animación física suavizada ultrarrápida a 60 FPS
   function physicsLoop() {
     if (btnNo) {
-      currentX += (targetX - currentX) * 0.16;
-      currentY += (targetY - currentY) * 0.16;
-      btnNo.style.transform = `translate3d(${currentX.toFixed(2)}px, ${currentY.toFixed(2)}px, 0)`;
+      if (!isScared && !btnNo.classList.contains('fleeing') && !btnNo.classList.contains('scared')) {
+        // Interpolación acelerada (0.38 en lugar de 0.16) para reacción como un rayo
+        currentX += (targetX - currentX) * 0.38;
+        currentY += (targetY - currentY) * 0.38;
+        btnNo.style.transform = `translate3d(${currentX.toFixed(2)}px, ${currentY.toFixed(2)}px, 0)`;
+      }
     }
     requestAnimationFrame(physicsLoop);
   }
@@ -387,7 +521,7 @@
         sessionStorage.setItem('oo_yes_sent', '1');
         await notifyEvent(
           '¡ELIGIERON SÍ! 🎉',
-          'El visitante ha pulsado "Sí" y fue redirigido a la página si.html con la invitación para salir y comer.'
+          'El visitante ha pulsado "Sí" y fue redirigido a la página si.html con la invitación para salir a comer o jugar Marvel Rivals / Party Machine (sin bullying).'
         );
       }
       window.location.href = 'si.html';
