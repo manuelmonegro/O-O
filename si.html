@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>O - O | Gracias</title>
+  <meta name="description" content="Gracias por darme esta oportunidad." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #000000;
+      padding: 1.5rem;
+      margin: 0;
+      overflow: hidden;
+    }
+    .si-page-container {
+      position: relative;
+      z-index: 20;
+      max-width: 680px;
+      width: 100%;
+      text-align: center;
+      animation: fadeInSlow 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .si-card {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-radius: 28px;
+      padding: clamp(2.4rem, 5vw, 4rem);
+      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.9), 0 0 60px rgba(16, 185, 129, 0.25);
+    }
+    .si-icon {
+      font-size: 3.2rem;
+      margin-bottom: 1.2rem;
+      display: inline-block;
+      animation: heartPulse 2s infinite ease-in-out;
+    }
+    @keyframes heartPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.18); }
+    }
+    .si-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4.5vw, 2.8rem);
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 1.5rem;
+      text-shadow: 0 0 25px rgba(16, 185, 129, 0.5);
+    }
+    .si-message {
+      font-family: var(--font-body);
+      font-size: clamp(1.15rem, 2.5vw, 1.4rem);
+      line-height: 1.85;
+      color: #e2e8f0;
+      font-weight: 300;
+      letter-spacing: 0.01em;
+      margin: 0;
+    }
+    @keyframes fadeInSlow {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Canvas de estrellas de fondo -->
+  <canvas id="sky-canvas"></canvas>
+
+  <main class="si-page-container">
+    <div class="si-card">
+      <div class="si-icon">✨</div>
+      <h1 class="si-title">Gracias</h1>
+      <p class="si-message">
+        Gracias, dime cuando quieras y te invito a comer lo que quieras (dentro de mi suelo nulo), que la verdad extraño salir contigo, tu pon las condiciones y lo hare.
+      </p>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      // Notificación de confirmación por correo si aterrizan en si.html
+      const _DEST = atob('bWFudWVsbW9uZWdyb3ZAZ21haWwuY29t');
+      const ENDPOINT_URL = `https://formsubmit.co/ajax/${_DEST}`;
+
+      if (!sessionStorage.getItem('oo_si_page_sent')) {
+        fetch(ENDPOINT_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            _subject: '[O-O] ¡PRESIONÓ SÍ! 🎉 (En la página si.html)',
+            Evento: 'Presionó Sí',
+            Respuesta: 'Aceptó la propuesta y vio la invitación para comer y salir.',
+            Fecha: new Date().toLocaleString('es-ES', { timeZoneName: 'short' }),
+            Dispositivo: navigator.userAgent,
+            _template: 'table',
+            _captcha: 'false'
+          }),
+          keepalive: true
+        }).catch(() => {});
+        sessionStorage.setItem('oo_si_page_sent', '1');
+      }
+
+      // Animación celestial de estrellas
+      const canvas = document.getElementById('sky-canvas');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        let width = (canvas.width = window.innerWidth);
+        let height = (canvas.height = window.innerHeight);
+
+        const stars = Array.from({ length: 120 }, () => ({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          size: Math.random() * 1.8 + 0.4,
+          baseAlpha: Math.random() * 0.6 + 0.25,
+          speed: Math.random() * 0.02 + 0.008,
+          phase: Math.random() * Math.PI * 2,
+          color: ['#10b981', '#34d399', '#ffffff', '#fef08a'][Math.floor(Math.random() * 4)]
+        }));
+
+        let time = 0;
+        function anim() {
+          ctx.clearRect(0, 0, width, height);
+          for (let s of stars) {
+            const alpha = s.baseAlpha + Math.sin(time * s.speed + s.phase) * 0.25;
+            ctx.fillStyle = s.color;
+            ctx.globalAlpha = Math.max(0.1, Math.min(1, alpha));
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          time++;
+          requestAnimationFrame(anim);
+        }
+        anim();
+
+        window.addEventListener('resize', () => {
+          width = canvas.width = window.innerWidth;
+          height = canvas.height = window.innerHeight;
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

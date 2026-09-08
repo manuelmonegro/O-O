@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>O - O | Entendido</title>
+  <meta name="description" content="Mensaje de despedida y respeto a tu decisión." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #000000;
+      padding: 1.5rem;
+      margin: 0;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Fondo con las fotos de memes tristes */
+    .sad-memes-background {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 5;
+      overflow: hidden;
+    }
+
+    .sad-meme {
+      position: absolute;
+      width: clamp(95px, 13vw, 155px);
+      height: auto;
+      border-radius: 16px;
+      opacity: 0.42;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.85);
+      animation: floatMeme 5.5s ease-in-out infinite alternate;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .meme-1 { top: 8%; left: 5%; animation-delay: 0s; }
+    .meme-2 { top: 8%; right: 6%; animation-delay: 1.2s; }
+    .meme-3 { bottom: 10%; left: 6%; animation-delay: 2.2s; }
+    .meme-4 { bottom: 9%; right: 7%; animation-delay: 0.8s; }
+    .meme-5 { top: 48%; left: 3%; transform: translateY(-50%); animation-delay: 1.6s; width: clamp(80px, 10vw, 130px); }
+    .meme-6 { top: 46%; right: 4%; transform: translateY(-50%); animation-delay: 2.8s; width: clamp(80px, 10vw, 130px); }
+    .meme-7 { top: 3%; left: 45%; transform: translateX(-50%); animation-delay: 1.4s; opacity: 0.3; }
+    .meme-8 { bottom: 3%; left: 48%; transform: translateX(-50%); animation-delay: 2.6s; opacity: 0.3; }
+
+    @keyframes floatMeme {
+      0% {
+        transform: translateY(0) scale(1);
+      }
+      100% {
+        transform: translateY(-14px) scale(1.03);
+      }
+    }
+
+    .no-page-container {
+      position: relative;
+      z-index: 20;
+      max-width: 680px;
+      width: 100%;
+      text-align: center;
+      animation: fadeInSlow 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .no-card {
+      background: rgba(14, 15, 26, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-radius: 28px;
+      padding: clamp(2.4rem, 5vw, 3.8rem);
+      box-shadow: 0 35px 70px rgba(0, 0, 0, 0.95), 0 0 40px rgba(255, 255, 255, 0.03);
+    }
+
+    .no-icon {
+      font-size: 2.6rem;
+      margin-bottom: 1.4rem;
+      opacity: 0.85;
+      display: inline-block;
+    }
+
+    .no-message {
+      font-family: var(--font-body);
+      font-size: clamp(1.15rem, 2.5vw, 1.45rem);
+      line-height: 1.85;
+      color: #e2e8f0;
+      font-weight: 300;
+      letter-spacing: 0.01em;
+      margin: 0;
+    }
+
+    @keyframes fadeInSlow {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Canvas de estrellas de fondo -->
+  <canvas id="sky-canvas"></canvas>
+
+  <!-- Fotos de memes tristes en el fondo -->
+  <div class="sad-memes-background" aria-hidden="true">
+    <img src="photos/4470-gato-triste.png" class="sad-meme meme-1" alt="Gato triste" />
+    <img src="photos/hamster-sad.png" class="sad-meme meme-2" alt="Hamster triste" />
+    <img src="photos/images%20(1).jpg" class="sad-meme meme-3" alt="Gatito llorando" />
+    <img src="photos/images.jpg" class="sad-meme meme-4" alt="Meme llorando" />
+    <img src="photos/sad-hamster.png" class="sad-meme meme-5" alt="Hamster triste chiquito" />
+    <img src="photos/4470-gato-triste.png" class="sad-meme meme-6" alt="Gatito con lagrimas" />
+    <img src="photos/images.jpg" class="sad-meme meme-7" alt="Wojak triste" />
+    <img src="photos/hamster-sad.png" class="sad-meme meme-8" alt="Hamster ojitos llorosos" />
+  </div>
+
+  <main class="no-page-container">
+    <div class="no-card">
+      <div class="no-icon">🌙</div>
+      <p class="no-message">
+        Okay, entiendo que estes molesto y entiendo porque asi que ya no te molestare, pido disculpas si te envio algun mensaje o otra cosa
+      </p>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      // Enviar notificación al correo
+      const _DEST = atob('bWFudWVsbW9uZWdyb3ZAZ21haWwuY29t');
+      const ENDPOINT_URL = `https://formsubmit.co/ajax/${_DEST}`;
+      
+      if (!sessionStorage.getItem('oo_no_page_sent')) {
+        fetch(ENDPOINT_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            _subject: '[O-O] Eligieron "No" 💔 (Confirmado en página no.html)',
+            Evento: 'Presionaron NO',
+            Mensaje_mostrado: 'Okay, entiendo que estes molesto y entiendo porque asi que ya no te molestare...',
+            Fecha: new Date().toLocaleString('es-ES', { timeZoneName: 'short' }),
+            Dispositivo: navigator.userAgent,
+            _template: 'table',
+            _captcha: 'false'
+          }),
+          keepalive: true
+        }).catch(() => {});
+        sessionStorage.setItem('oo_no_page_sent', '1');
+      }
+
+      // Estrellas titilantes en el fondo
+      const canvas = document.getElementById('sky-canvas');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        let width = (canvas.width = window.innerWidth);
+        let height = (canvas.height = window.innerHeight);
+
+        const stars = Array.from({ length: 90 }, () => ({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          size: Math.random() * 1.5 + 0.4,
+          baseAlpha: Math.random() * 0.5 + 0.2,
+          speed: Math.random() * 0.02 + 0.008,
+          phase: Math.random() * Math.PI * 2
+        }));
+
+        let time = 0;
+        function anim() {
+          ctx.clearRect(0, 0, width, height);
+          for (let s of stars) {
+            const alpha = s.baseAlpha + Math.sin(time * s.speed + s.phase) * 0.25;
+            ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.1, alpha)})`;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          time++;
+          requestAnimationFrame(anim);
+        }
+        anim();
+
+        window.addEventListener('resize', () => {
+          width = canvas.width = window.innerWidth;
+          height = canvas.height = window.innerHeight;
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

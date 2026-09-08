@@ -1,0 +1,499 @@
+/* ==========================================================================
+   VARIABLES DE TEMA Y PALETA CINEMATOGRÁFICA
+   ========================================================================== */
+:root {
+  --font-display: 'Outfit', sans-serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+
+  /* Colores del atardecer inicial */
+  --sky-night: #090518;
+  --sky-indigo: #1b103b;
+  --sky-purple: #3f1958;
+  --sky-dusk: #792d64;
+  --sky-rose: #bf4d65;
+  --sky-sunset: #ea7a5c;
+  --sky-glow: #fbb07e;
+
+  /* Colores de las colinas (inicialmente verdes de atardecer) */
+  --hill-back-start: #1c452e;
+  --hill-front-start: #2a6140;
+
+  /* Colores de transición a la noche */
+  --space-dark: #05050a;
+  --space-card: rgba(14, 15, 26, 0.72);
+  --space-border: rgba(255, 255, 255, 0.08);
+  --text-main: #f0f0f5;
+  --text-muted: #b8b8cc;
+
+  /* Botones */
+  --btn-yes-bg: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --btn-yes-glow: rgba(16, 185, 129, 0.45);
+  --btn-no-bg: rgba(239, 68, 68, 0.15);
+  --btn-no-border: rgba(239, 68, 68, 0.35);
+  --btn-no-text: #fca5a5;
+
+  /* Factor de scroll dinámico [0 a 1] controlado por JS */
+  --scroll-ratio: 0;
+}
+
+/* ==========================================================================
+   RESET & ESTILOS BASE
+   ========================================================================== */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--sky-night);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+}
+
+body {
+  position: relative;
+  min-height: 200vh;
+  background: var(--sky-night);
+  overflow-x: hidden;
+  transition: background-color 0.8s ease;
+}
+
+/* ==========================================================================
+   CANVAS DE ESTRELLAS Y CAPA DE ATARDECER
+   ========================================================================== */
+#sky-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.sunset-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(9, 5, 24, 0.2) 0%,
+    rgba(27, 16, 59, 0.4) 30%,
+    rgba(63, 25, 88, 0.6) 55%,
+    rgba(121, 45, 100, 0.75) 75%,
+    rgba(191, 77, 101, 0.85) 88%,
+    rgba(234, 122, 92, 0.95) 96%,
+    rgba(251, 176, 126, 1) 100%
+  );
+  opacity: calc(1 - (var(--scroll-ratio) * 1.25));
+  transition: opacity 0.15s ease-out;
+}
+
+/* ==========================================================================
+   CONTENEDOR PRINCIPAL
+   ========================================================================== */
+.page-container {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+}
+
+/* ==========================================================================
+   SECCIÓN 1: HERO CON ATARDECER Y COLINAS
+   ========================================================================== */
+.hero-section {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 0 1.5rem;
+}
+
+.hero-content {
+  max-width: 800px;
+  z-index: 15;
+  animation: fadeInDown 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.hero-phrase {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+  color: #ffffff;
+  background: linear-gradient(180deg, #ffffff 35%, #fed7aa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.65), 0 0 45px rgba(251, 176, 126, 0.35);
+}
+
+/* Indicador de scroll */
+.scroll-indicator {
+  position: absolute;
+  bottom: 25vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 20;
+  cursor: pointer;
+  opacity: calc(1 - (var(--scroll-ratio) * 2.5));
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  user-select: none;
+}
+
+.scroll-indicator:hover {
+  transform: translateY(3px);
+}
+
+.scroll-text {
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: #ffffff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+.scroll-mouse {
+  width: 22px;
+  height: 36px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 14px;
+  position: relative;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+}
+
+.scroll-wheel {
+  width: 4px;
+  height: 7px;
+  background: #ffffff;
+  border-radius: 2px;
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: scrollWheel 1.8s infinite ease-in-out;
+}
+
+.scroll-arrow {
+  width: 18px;
+  height: 18px;
+  color: #ffffff;
+  animation: floatArrow 1.8s infinite ease-in-out;
+}
+
+@keyframes scrollWheel {
+  0% { transform: translate(-50%, 0); opacity: 1; }
+  60% { transform: translate(-50%, 10px); opacity: 0; }
+  100% { transform: translate(-50%, 0); opacity: 0; }
+}
+
+@keyframes floatArrow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(5px); }
+}
+
+/* ==========================================================================
+   COLINA EN LA BASE DEL HERO CON GRADIENTE SUAVE A NEGRO PURO
+   ========================================================================== */
+.hill-transition-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 32vh;
+  min-height: 220px;
+  pointer-events: none;
+  z-index: 12;
+  overflow: hidden;
+}
+
+.hill-svg {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* FIGURA MELANCÓLICA EN EL COSTADO DERECHO */
+.figure-side-wrapper {
+  position: absolute;
+  bottom: 22px;
+  right: 5%;
+  width: clamp(140px, 17vw, 220px);
+  height: auto;
+  z-index: 15;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.45));
+  animation: solitaryBreathe 4.5s infinite ease-in-out;
+  transform-origin: bottom center;
+}
+
+.figure-side-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+@keyframes solitaryBreathe {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-3px) scale(1.008);
+  }
+}
+
+@media (max-width: 768px) {
+  .figure-side-wrapper {
+    right: 3%;
+    bottom: 16px;
+    width: 130px;
+  }
+}
+
+@media (max-width: 480px) {
+  .figure-side-wrapper {
+    right: 1%;
+    bottom: 12px;
+    width: 110px;
+  }
+}
+
+/* ==========================================================================
+   SECCIÓN 2: LA CARTA Y PREGUNTA (FONDO 100% NEGRO PURO)
+   ========================================================================== */
+.letter-section {
+  position: relative;
+  min-height: 100vh;
+  background-color: #000000;
+  padding: 6rem 1.5rem 8rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 25;
+}
+
+.letter-wrapper {
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.letter-card {
+  position: relative;
+  background: var(--space-card);
+  border: 1px solid var(--space-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: clamp(2rem, 5vw, 3.5rem);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 40px rgba(255, 255, 255, 0.02);
+  margin-bottom: 3.5rem;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-glow {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 50% 30%, rgba(120, 119, 198, 0.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.letter-body {
+  position: relative;
+  font-size: clamp(1.08rem, 2.3vw, 1.35rem);
+  line-height: 1.85;
+  color: #e2e8f0;
+  font-weight: 300;
+  letter-spacing: 0.01em;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+@media (max-width: 600px) {
+  .letter-body {
+    text-align: left;
+  }
+}
+
+/* ==========================================================================
+   PREGUNTA Y BOTONES INTERACTIVOS
+   ========================================================================== */
+.question-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.question-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4.5vw, 2.8rem);
+  font-weight: 600;
+  margin-bottom: 2.5rem;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+  text-shadow: 0 0 25px rgba(255, 255, 255, 0.25);
+}
+
+/* Área de acción de los botones */
+.buttons-playground {
+  position: relative;
+  width: 100%;
+  max-width: 620px;
+  min-height: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 3rem;
+  padding: 1rem;
+}
+
+/* Estilos de botones generales */
+.btn {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  padding: 0.95rem 2.8rem;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.25s ease;
+}
+
+/* Botón SÍ: Cálido, brillante y acogedor */
+.btn-yes {
+  background: var(--btn-yes-bg);
+  color: #ffffff;
+  box-shadow: 0 4px 20px var(--btn-yes-glow), 0 0 35px rgba(16, 185, 129, 0.25);
+  position: relative;
+  overflow: hidden;
+  z-index: 5;
+}
+
+.btn-yes:hover {
+  transform: scale(1.06);
+  box-shadow: 0 8px 30px rgba(16, 185, 129, 0.6), 0 0 50px rgba(16, 185, 129, 0.4);
+}
+
+.btn-yes:active {
+  transform: scale(0.98);
+}
+
+.btn-sparkle {
+  font-size: 1rem;
+  animation: pulseSparkle 2s infinite ease-in-out;
+}
+
+@keyframes pulseSparkle {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.8; }
+  50% { transform: scale(1.3) rotate(20deg); opacity: 1; }
+}
+
+/* Botón NO: Física de evasión por velocidad del ratón */
+.btn-no {
+  background: var(--btn-no-bg);
+  color: var(--btn-no-text);
+  border: 1px solid var(--btn-no-border);
+  backdrop-filter: blur(8px);
+  position: relative;
+  z-index: 6;
+  white-space: nowrap;
+  touch-action: none;
+  will-change: transform;
+}
+
+.btn-no:hover {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+/* ==========================================================================
+   TARJETA DE ACTUALIZACIÓN EN LA PÁGINA AL PULSAR SÍ
+   ========================================================================== */
+.yes-updated-card {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 28px;
+  padding: clamp(2.4rem, 5vw, 3.8rem);
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 50px rgba(16, 185, 129, 0.25);
+  animation: fadeInDown 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.yes-updated-icon {
+  font-size: 3rem;
+  margin-bottom: 1.2rem;
+  animation: heartPulse 2.2s infinite ease-in-out;
+  display: inline-block;
+}
+
+@keyframes heartPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+}
+
+.yes-updated-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 2.7rem);
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 1.25rem;
+  text-shadow: 0 0 25px rgba(16, 185, 129, 0.5);
+}
+
+.yes-updated-message {
+  font-family: var(--font-body);
+  font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+  line-height: 1.85;
+  color: #e2e8f0;
+  font-weight: 300;
+  letter-spacing: 0.01em;
+}
+
+/* ==========================================================================
+   ANIMACIONES GENERALES
+   ========================================================================== */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
