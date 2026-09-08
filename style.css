@@ -332,6 +332,14 @@ body {
   text-justify: inter-word;
 }
 
+.letter-body p {
+  margin: 0 0 1.5rem 0;
+}
+
+.letter-body p:last-child {
+  margin-bottom: 0;
+}
+
 @media (max-width: 600px) {
   .letter-body {
     text-align: left;
